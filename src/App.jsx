@@ -12,6 +12,8 @@ import { IoBackspaceOutline } from "react-icons/io5";
 import { useState } from "react";
 import calculatorItems from "./Components/js/calculatorItems";
 
+console.log('054851')
+
 function App() {
   return (
     <Center minH="100dvh" bg="#111" p={{ base: 0, sm: 4 }}>
