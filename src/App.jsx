@@ -10,9 +10,9 @@ import {
 } from "@chakra-ui/react";
 import { IoBackspaceOutline } from "react-icons/io5";
 import { useState } from "react";
-import calculatorItems from "./Components/js/calculatorItems";
+import calculatorItems from "./Components/js/calculatorItems.js";
 
-console.log('054851')
+// console.log('054851')
 
 function App() {
   return (
