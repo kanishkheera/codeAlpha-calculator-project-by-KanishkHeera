@@ -15,15 +15,18 @@ import { useState, useEffect, useCallback } from "react";
 export default function Calculator() {
   const [inp, setInp] = useState("");
   const [pluse, setPluse] = useState("");
+  const [justCalculated, setJustCalculated] = useState(false);
 
   const handleClick = useCallback((value) => {
     switch (value) {
       case "AC":
         setInp("");
+        setJustCalculated(false);
         return;
 
       case "⌫":
-        setInp((prev) => prev.slice(0, -1));
+        setInp((prev) => (prev === "Error" ? "" : prev.slice(0, -1)));
+        setJustCalculated(false);
         return;
 
       case "=":
@@ -59,16 +62,34 @@ export default function Calculator() {
           const result = eval(expression);
 
           setInp(result.toString());
+          setJustCalculated(true);
         } catch {
           setInp("Error");
+          setJustCalculated(false);
         }
         return;
 
       default:
-        setInp((prev) => prev + value);
+        setInp((prev) => {
+          if (prev === "Error") return value;
+
+          if (justCalculated) {
+            // If the display is showing a freshly computed result,
+            // digits/decimal start a brand new number (replacing the
+            // result), while operators continue the calculation from
+            // the result — e.g. "0" then "+" => "0+", but "0" then "5"
+            // => "5" (not "05", which would break eval as an invalid
+            // legacy octal literal).
+            const operators = ["+", "-", "×", "÷", "%"];
+            return operators.includes(value) ? prev + value : value;
+          }
+
+          return prev + value;
+        });
+        setJustCalculated(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inp]);
+  }, [inp, justCalculated]);
 
   // Keyboard support
   useEffect(() => {
