@@ -10,12 +10,13 @@ import {
 } from "@chakra-ui/react";
 import { IoBackspaceOutline } from "react-icons/io5";
 import calculatorItems from "./js/calculatorItems";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 export default function Calculator() {
   const [inp, setInp] = useState("");
   const [pluse, setPluse] = useState("");
   const [justCalculated, setJustCalculated] = useState(false);
+  const buttonRefs = useRef({});
 
   const handleClick = useCallback((value) => {
     switch (value) {
@@ -117,6 +118,18 @@ export default function Calculator() {
       "Escape": "AC",
     };
 
+    const pressStyle = (el) => {
+      if (!el) return;
+      el.style.transform = "scale(0.96)";
+      el.style.filter = "brightness(110%)";
+    };
+
+    const releaseStyle = (el) => {
+      if (!el) return;
+      el.style.transform = "";
+      el.style.filter = "";
+    };
+
     const handleKeyDown = (e) => {
       const mapped = keyMap[e.key];
       if (mapped === undefined) return;
@@ -125,11 +138,29 @@ export default function Calculator() {
       // "/" triggering quick find, etc.)
       e.preventDefault();
 
+      pressStyle(buttonRefs.current[mapped]);
       handleClick(mapped);
     };
 
+    const handleKeyUp = (e) => {
+      const mapped = keyMap[e.key];
+      if (mapped === undefined) return;
+
+      releaseStyle(buttonRefs.current[mapped]);
+    };
+
+    const handleBlur = () => {
+      Object.values(buttonRefs.current).forEach(releaseStyle);
+    };
+
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
+    };
   }, [handleClick]);
 
   return (
@@ -193,6 +224,9 @@ export default function Calculator() {
           {calculatorItems.map((ele) => (
             <GridItem key={ele.id} colSpan={ele.cols}>
               <Button
+                ref={(el) => {
+                  buttonRefs.current[ele.item] = el;
+                }}
                 w="100%"
                 h="100%"
                 minH={0}
@@ -203,6 +237,7 @@ export default function Calculator() {
                 fontWeight="bold"
                 _hover={{ filter: "brightness(110%)" }}
                 _active={{ transform: "scale(0.96)" }}
+                transition="transform 0.1s ease, filter 0.1s ease"
                 onClick={() => handleClick(ele.item)}
               >
                 {ele.item}
